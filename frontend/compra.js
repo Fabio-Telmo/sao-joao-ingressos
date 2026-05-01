@@ -1,4 +1,4 @@
-  const API_URL = "http://localhost:3000";
+ const API_URL = "https://sao-joao-ingressos.onrender.com/";
 
   const TICKET_PRICE = 10;
   const MAX_TICKETS = 10;
