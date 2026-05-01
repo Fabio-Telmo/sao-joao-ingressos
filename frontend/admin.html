@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Validação de Ingressos</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+  <div class="flags" aria-hidden="true">
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+  </div>
+
+  <div class="circle one" aria-hidden="true"></div>
+  <div class="circle two" aria-hidden="true"></div>
+  <div class="circle three" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="card">
+      <div class="badge">Painel administrativo</div>
+
+      <header class="header">
+        <h1>Validar <span>Ingresso</span></h1>
+        <p>Escaneie o QR Code do ingresso ou digite o código para verificar se ele ainda pode ser usado.</p>
+      </header>
+
+      <div class="scanner-box">
+        <div class="video-wrap" id="videoWrap">
+          <video id="video" autoplay muted playsinline></video>
+          <div class="scan-frame" id="scanFrame"></div>
+          <p id="cameraPlaceholder">A câmera aparecerá aqui quando o leitor for iniciado.</p>
+        </div>
+
+        <div class="actions">
+          <button class="button primary" type="button" id="startScannerButton">Iniciar leitor QR</button>
+          <button class="button secondary" type="button" id="stopScannerButton" disabled>Parar leitor</button>
+        </div>
+
+        <div class="manual-area">
+          <label for="ticketCodeInput">Código do ingresso</label>
+          <div class="manual-row">
+            <input id="ticketCodeInput" type="text" placeholder="Ex: SJ-2026-123456" autocomplete="off" />
+            <button class="button success" type="button" id="validateButton">Validar</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="result" id="resultBox"></div>
+
+      <div class="actions" id="useActions" style="display: none;">
+        <button class="button success" type="button" id="markAsUsedButton">Liberar entrada e marcar como usado</button>
+        <button class="button danger" type="button" id="clearButton">Cancelar validação</button>
+      </div>
+
+      <p class="admin-note">
+        Esta versão simula a validação usando dados do navegador. Na versão real, o botão vai consultar o Firebase pelo backend e atualizar o campo <strong>usado</strong> do ingresso.
+      </p>
+    </section>
+  </main>
+<script src="admin.js"></script>
+</body>
+</html>

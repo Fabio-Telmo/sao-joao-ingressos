@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin | Pagamentos</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff5d8, #ffe6ef 45%, #e5f7ff);
+      color: #32213a;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      font-size: 2rem;
+      color: #3b2550;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #6b5873;
+      line-height: 1.5;
+    }
+
+    .actions-top {
+      margin-bottom: 16px;
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .refresh {
+      width: 100%;
+      background: linear-gradient(90deg, #ff8a3d, #ff5fa2, #8d74ff);
+      color: white;
+      box-shadow: 0 10px 22px rgba(255, 95, 162, 0.25);
+    }
+
+    .confirm {
+      background: linear-gradient(90deg, #36c36f, #23b8ff);
+      color: white;
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: 0 14px 30px rgba(80, 48, 20, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .card h2 {
+      font-size: 1.15rem;
+      margin-bottom: 8px;
+      color: #3b2550;
+    }
+
+    .status {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+
+    .status.pendente {
+      background: rgba(255, 216, 107, 0.4);
+      color: #735000;
+    }
+
+    .status.aguardando {
+      background: rgba(100, 199, 255, 0.25);
+      color: #245b74;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .item {
+      padding: 10px;
+      background: rgba(255, 248, 231, 0.9);
+      border-radius: 12px;
+    }
+
+    .item span {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 800;
+      color: #7a687f;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+
+    .item strong {
+      font-size: 0.95rem;
+      word-break: break-word;
+    }
+
+    .message {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.7);
+      text-align: center;
+      color: #6b5873;
+      font-weight: 700;
+    }
+
+    .success-message {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 12px;
+      background: rgba(142, 229, 157, 0.3);
+      color: #23633a;
+      font-weight: 800;
+      display: none;
+    }
+
+    @media (min-width: 700px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .refresh {
+        width: auto;
+      }
+
+      .confirm {
+        width: auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Confirmação de pagamentos</h1>
+      <p>Confira o pagamento no extrato Pix antes de confirmar. Depois da confirmação, o ingresso será criado.</p>
+    </header>
+
+    <div class="actions-top">
+      <button class="refresh" id="refreshButton">Atualizar pedidos</button>
+    </div>
+
+    <section id="ordersList">
+      <div class="message">Carregando pedidos...</div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "http://localhost:3000";
+
+    const ordersList = document.getElementById("ordersList");
+    const refreshButton = document.getElementById("refreshButton");
+
+    function formatCurrency(value) {
+      return Number(value).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function getStatusText(status) {
+      if (status === "pendente") return "Pendente";
+      if (status === "aguardando_confirmacao") return "Aguardando confirmação";
+      return status;
+    }
+
+    function getStatusClass(status) {
+      if (status === "aguardando_confirmacao") return "aguardando";
+      return "pendente";
+    }
+
+    async function loadOrders() {
+      ordersList.innerHTML = `<div class="message">Carregando pedidos...</div>`;
+
+      try {
+        const response = await fetch(`${API_URL}/api/pedidos/pendentes-pagamento`);
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Erro ao carregar pedidos.");
+        }
+
+        if (!data.pedidos.length) {
+          ordersList.innerHTML = `<div class="message">Nenhum pedido pendente no momento.</div>`;
+          return;
+        }
+
+        ordersList.innerHTML = "";
+
+        data.pedidos.forEach((pedido) => {
+          const card = document.createElement("article");
+          card.className = "card";
+
+          card.innerHTML = `
+            <span class="status ${getStatusClass(pedido.status)}">
+              ${getStatusText(pedido.status)}
+            </span>
+
+            <h2>${pedido.comprador?.fullName || "Comprador não encontrado"}</h2>
+
+            <div class="grid">
+              <div class="item">
+                <span>Pedido</span>
+                <strong>${pedido.pedidoId}</strong>
+              </div>
+
+              <div class="item">
+                <span>Email</span>
+                <strong>${pedido.comprador?.email || "-"}</strong>
+              </div>
+
+              <div class="item">
+                <span>Telefone</span>
+                <strong>${pedido.comprador?.phone || "-"}</strong>
+              </div>
+
+              <div class="item">
+                <span>Quantidade</span>
+                <strong>${pedido.quantidade} ingresso(s)</strong>
+              </div>
+
+              <div class="item">
+                <span>Valor total</span>
+                <strong>${formatCurrency(pedido.valorTotal)}</strong>
+              </div>
+
+              <div class="item">
+                <span>Status</span>
+                <strong>${getStatusText(pedido.status)}</strong>
+              </div>
+            </div>
+
+            <button class="confirm" onclick="confirmPayment('${pedido.pedidoId}')">
+              Confirmar pagamento
+            </button>
+
+            <div class="success-message" id="msg-${pedido.pedidoId}">
+              Pagamento confirmado.
+            </div>
+          `;
+
+          ordersList.appendChild(card);
+        });
+      } catch (error) {
+        ordersList.innerHTML = `<div class="message">${error.message}</div>`;
+      }
+    }
+
+    async function confirmPayment(pedidoId) {
+      const confirmacao = confirm("Você conferiu no Pix/extrato que esse pagamento realmente caiu?");
+
+      if (!confirmacao) {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/confirmar-pagamento`, {
+          method: "POST"
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Erro ao confirmar pagamento.");
+        }
+
+        alert(`Pagamento confirmado. Código do ingresso: ${data.codigoValidacao}`);
+
+        loadOrders();
+      } catch (error) {
+        alert(error.message);
+      }
+    }
+
+    refreshButton.addEventListener("click", loadOrders);
+
+    loadOrders();
+  </script>
+</body>
+</html>

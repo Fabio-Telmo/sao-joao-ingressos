@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro | São João da Escola</title>
+  <link rel="stylesheet" href="cadastro.css" />
+</head>
+<body>
+  <div class="flags" aria-hidden="true">
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+  </div>
+
+  <div class="circle one" aria-hidden="true"></div>
+  <div class="circle two" aria-hidden="true"></div>
+  <div class="circle three" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="card">
+      <div class="badge">Arraiá da Escola</div>
+
+      <header class="header">
+        <h1>São João <span>Cadastro do ingresso</span></h1>
+        <p>Preencha seus dados para continuar a compra do ingresso.</p>
+      </header>
+
+      <form id="registerForm">
+        <div class="field">
+          <label for="fullName">Nome completo</label>
+          <input
+            type="text"
+            id="fullName"
+            name="fullName"
+            placeholder="Ex: Fábio Telmo"
+            autocomplete="name"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="birthDate">Data de nascimento</label>
+          <input
+            type="date"
+            id="birthDate"
+            name="birthDate"
+            required
+          />
+        </div>
+
+        <div class="field">
+          <label for="phone">Telefone</label>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            placeholder="(00) 00000-0000"
+            inputmode="tel"
+            autocomplete="tel"
+            maxlength="15"
+            required
+          />
+          <small class="hint">Use um número válido para receber informações sobre o ingresso.</small>
+        </div>
+
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="seuemail@exemplo.com"
+            inputmode="email"
+            autocomplete="email"
+            required
+          />
+        </div>
+
+        <button class="button" type="submit">Continuar para compra</button>
+      </form>
+
+      <div class="message" id="message">
+        Cadastro salvo. Agora você pode ir para a página de compra.
+      </div>
+
+      <p class="secure-note">
+        Seus dados serão usados apenas para registrar a compra e emitir o ingresso.
+      </p>
+    </section>
+  </main>
+
+  <script src="cadastro.js"></script>
+</body>
+</html>

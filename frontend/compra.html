@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Compra | São João da Escola</title>
+  <link rel="stylesheet" href="compra.css" />
+</head>
+<body>
+  <div class="flags" aria-hidden="true">
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+  </div>
+
+  <div class="circle one" aria-hidden="true"></div>
+  <div class="circle two" aria-hidden="true"></div>
+  <div class="circle three" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="card">
+      <div class="badge">Etapa 2 de 3</div>
+
+      <header class="header">
+        <h1>Comprar <span>Ingressos</span></h1>
+        <p>Escolha a quantidade de ingressos e confira o valor total antes de pagar.</p>
+      </header>
+
+      <div class="buyer-box">
+        <strong>Comprador</strong>
+        <p id="buyerName">Carregando dados...</p>
+        <p id="buyerEmail"></p>
+      </div>
+
+      <div class="ticket-info">
+        <div class="info-card">
+          <span>Evento</span>
+          <strong>São João da Escola</strong>
+        </div>
+
+        <div class="info-card">
+          <span>Valor unitário</span>
+          <strong id="unitPrice">R$ 10,00</strong>
+        </div>
+      </div>
+
+      <form id="purchaseForm">
+        <div class="quantity-area">
+          <label for="quantity">Quantos ingressos você deseja comprar?</label>
+
+          <div class="quantity-control">
+            <button class="quantity-button" type="button" id="decreaseButton">-</button>
+
+            <input
+              class="quantity-input"
+              type="number"
+              id="quantity"
+              name="quantity"
+              min="1"
+              max="10"
+              value="1"
+              inputmode="numeric"
+              required
+            />
+
+            <button class="quantity-button" type="button" id="increaseButton">+</button>
+          </div>
+        </div>
+
+        <div class="total-box">
+          <span>Total a pagar</span>
+          <strong id="totalPrice">R$ 10,00</strong>
+        </div>
+
+        <div class="actions">
+          <button class="button primary" type="submit">Continuar para pagamento</button>
+          <button class="button secondary" type="button" id="backButton">Voltar ao cadastro</button>
+        </div>
+      </form>
+
+      <div class="warning" id="warningMessage"></div>
+    </section>
+  </main>
+
+  <script src="compra.js"></script>
+</body>
+</html>

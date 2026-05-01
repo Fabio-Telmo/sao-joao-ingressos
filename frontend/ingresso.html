@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ingresso | São João da Escola</title>
+  <link rel="stylesheet" href="ingresso.css">
+</head>
+<body>
+  <div class="flags" aria-hidden="true">
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+    <div class="flag"></div>
+  </div>
+
+  <div class="circle one" aria-hidden="true"></div>
+  <div class="circle two" aria-hidden="true"></div>
+  <div class="circle three" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="container" id="ticketContainer">
+      <div class="success-card">
+        <div class="success-icon">✓</div>
+        <h1>Ingresso liberado</h1>
+        <p>Pagamento aprovado. Apresente este ingresso na entrada do evento.</p>
+      </div>
+
+      <article class="ticket" id="ticket">
+        <div class="ticket-top">
+          <span class="small">Ingresso oficial</span>
+          <h2>São João</h2>
+          <p>Festa junina da escola</p>
+        </div>
+
+        <hr class="ticket-divider" />
+
+        <div class="ticket-body">
+          <div class="ticket-grid">
+            <div class="ticket-info">
+              <span>Nome</span>
+              <strong id="ticketName">-</strong>
+            </div>
+
+            <div class="ticket-info">
+              <span>Email</span>
+              <strong id="ticketEmail">-</strong>
+            </div>
+
+            <div class="ticket-info">
+              <span>Telefone</span>
+              <strong id="ticketPhone">-</strong>
+            </div>
+
+            <div class="ticket-info">
+              <span>Data de nascimento</span>
+              <strong id="ticketBirthDate">-</strong>
+            </div>
+
+            <div class="ticket-info">
+              <span>Quantidade</span>
+              <strong id="ticketQuantity">-</strong>
+            </div>
+
+            <div class="ticket-info">
+              <span>Valor pago</span>
+              <strong id="ticketTotal">-</strong>
+            </div>
+          </div>
+
+          <div class="qr-section">
+            <div class="qr-code" aria-label="QR Code de validação simulado">
+              <div class="qr-pattern"></div>
+            </div>
+
+            <p>Use este código para validar o ingresso na entrada.</p>
+            <div class="ticket-code" id="ticketCode">-</div>
+          </div>
+        </div>
+      </article>
+
+      <div class="actions">
+        <button class="button primary" type="button" id="printButton">Salvar ou imprimir ingresso</button>
+        <button class="button secondary" type="button" id="newPurchaseButton">Fazer nova compra</button>
+      </div>
+
+      <p class="print-note">
+        Nesta versão, o botão usa a impressão do navegador. Depois, o backend poderá gerar um PDF real e salvar no Firebase Storage.
+      </p>
+    </section>
+
+    <section class="error-card" id="errorCard">
+      <h1>Ingresso não disponível</h1>
+      <p>Não encontrei uma compra paga. Volte para o cadastro e faça o fluxo novamente.</p>
+      <button class="button primary" type="button" id="goToRegisterButton">Ir para cadastro</button>
+    </section>
+  </main>
+<script src="ingresso.js"></script>
+</body>
+</html>
