@@ -1,4 +1,4 @@
-  const API_URL = "https://sao-joao-ingressos.onrender.com/";
+  const API_URL = "https://sao-joao-ingressos.onrender.com";
 
   const form = document.getElementById("registerForm");
   const phoneInput = document.getElementById("phone");
