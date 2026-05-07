@@ -40,7 +40,10 @@ function formatDateTime(value) {
 }
 
 function getPaymentLabel(statusPagamento) {
-  if (statusPagamento === "pago") return "Pago";
+  if (statusPagamento === "pago") {
+    return "Pago";
+  }
+
   return "Não pago";
 }
 
