@@ -310,3 +310,23 @@ input:focus {
     height: 54px;
   }
 }
+.admin-access {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  color: #493051;
+  border: 2px solid rgba(255, 159, 67, 0.28);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: 0.25s ease;
+}
+
+.admin-access:hover {
+  transform: translateY(-2px);
+}

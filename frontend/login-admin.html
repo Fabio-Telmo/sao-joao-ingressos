@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Administrativo | São João</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff5d8, #ffe6ef 45%, #e5f7ff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      color: #32213a;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 26px;
+      padding: 26px 20px;
+      box-shadow: 0 18px 45px rgba(80, 48, 20, 0.18);
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #3b2550;
+      margin-bottom: 8px;
+    }
+
+    p {
+      color: #6b5873;
+      line-height: 1.4;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      text-align: left;
+      font-size: 0.9rem;
+      font-weight: 800;
+      margin-bottom: 8px;
+      color: #493051;
+    }
+
+    input {
+      width: 100%;
+      min-height: 52px;
+      border: 2px solid rgba(100, 199, 255, 0.38);
+      border-radius: 16px;
+      padding: 0 14px;
+      font-size: 1rem;
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    input:focus {
+      border-color: #ff9f43;
+      box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.18);
+    }
+
+    button, a {
+      width: 100%;
+      min-height: 52px;
+      border: none;
+      border-radius: 16px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .primary {
+      background: linear-gradient(90deg, #ff8a3d, #ff5fa2, #8d74ff);
+      color: white;
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.8);
+      color: #493051;
+      border: 2px solid rgba(255, 159, 67, 0.35);
+    }
+
+    .message {
+      display: none;
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255, 126, 182, 0.2);
+      color: #79334e;
+      font-size: 0.9rem;
+      font-weight: 800;
+    }
+
+    .message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>Área administrativa</h1>
+    <p>Entre com a senha para acessar as páginas de administração.</p>
+
+    <form id="adminLoginForm">
+      <label for="password">Senha do administrador</label>
+      <input type="password" id="password" placeholder="Digite a senha" required />
+
+      <button class="primary" type="submit">Entrar</button>
+    </form>
+
+    <a class="secondary" href="cadastro.html">Voltar para cadastro</a>
+
+    <div class="message" id="message"></div>
+  </main>
+
+  <script>
+    const API_URL = "https://sao-joao-ingressos.onrender.com";
+
+    const form = document.getElementById("adminLoginForm");
+    const passwordInput = document.getElementById("password");
+    const message = document.getElementById("message");
+
+    const params = new URLSearchParams(window.location.search);
+    const redirectTo = params.get("redirect") || "admin-pagamentos.html";
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const button = form.querySelector("button");
+      button.disabled = true;
+      button.textContent = "Entrando...";
+
+      try {
+        const response = await fetch(`${API_URL}/api/admin/login`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            password: passwordInput.value
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.message || "Erro ao fazer login.");
+        }
+
+        localStorage.setItem("saoJoaoAdminToken", data.token);
+
+        window.location.href = redirectTo;
+      } catch (error) {
+        message.textContent = error.message;
+        message.classList.add("show");
+
+        button.disabled = false;
+        button.textContent = "Entrar";
+      }
+    });
+  </script>
+</body>
+</html>

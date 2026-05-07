@@ -176,8 +176,9 @@
     </header>
 
     <div class="actions-top">
-      <button class="refresh" id="refreshButton">Atualizar pedidos</button>
-    </div>
+  <button class="refresh" id="refreshButton">Atualizar pedidos</button>
+  <button class="refresh" id="logoutButton" type="button">Sair do admin</button>
+</div>
 
     <section id="ordersList">
       <div class="message">Carregando pedidos...</div>
@@ -186,7 +187,11 @@
 
   <script>
     const API_URL = "https://sao-joao-ingressos.onrender.com";
+    const adminToken = localStorage.getItem("saoJoaoAdminToken");
 
+    if (!adminToken) {
+      window.location.href = "login-admin.html?redirect=admin-pagamentos.html";
+    }
     const ordersList = document.getElementById("ordersList");
     const refreshButton = document.getElementById("refreshButton");
 
@@ -212,7 +217,11 @@
       ordersList.innerHTML = `<div class="message">Carregando pedidos...</div>`;
 
       try {
-        const response = await fetch(`${API_URL}/api/pedidos/pendentes-pagamento`);
+        const response = await fetch(`${API_URL}/api/pedidos/pendentes-pagamento`, {
+  headers: {
+    "X-Admin-Token": adminToken
+  }
+});
         const data = await response.json();
 
         if (!response.ok) {
@@ -294,8 +303,11 @@
 
       try {
         const response = await fetch(`${API_URL}/api/pedidos/${pedidoId}/confirmar-pagamento`, {
-          method: "POST"
-        });
+  method: "POST",
+  headers: {
+    "X-Admin-Token": adminToken
+  }
+});
 
         const data = await response.json();
 
@@ -312,6 +324,10 @@
     }
 
     refreshButton.addEventListener("click", loadOrders);
+    document.getElementById("logoutButton")?.addEventListener("click", () => {
+  localStorage.removeItem("saoJoaoAdminToken");
+  window.location.href = "login-admin.html";
+});
 
     loadOrders();
   </script>

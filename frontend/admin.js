@@ -1,3 +1,9 @@
+    const adminToken = localStorage.getItem("saoJoaoAdminToken");
+
+if (!adminToken) {
+  window.location.href = "login-admin.html?redirect=admin.html";
+}
+    
     const video = document.getElementById("video");
     const cameraPlaceholder = document.getElementById("cameraPlaceholder");
     const scanFrame = document.getElementById("scanFrame");
