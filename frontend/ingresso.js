@@ -67,6 +67,30 @@ function getPaymentStatusColor(statusPagamento) {
   };
 }
 
+function generateQrCode(code) {
+  if (!ticketQrCode || !code || code === "-") return;
+
+  if (typeof QRCode === "undefined") {
+    console.error("Biblioteca QRCode não carregada.");
+    return;
+  }
+
+  QRCode.toCanvas(
+    ticketQrCode,
+    code,
+    {
+      width: 170,
+      margin: 1,
+      errorCorrectionLevel: "M"
+    },
+    (error) => {
+      if (error) {
+        console.error("Erro ao gerar QR Code:", error);
+      }
+    }
+  );
+}
+
 function createOrUpdatePaymentStatus(statusPagamento) {
   let statusElement = document.getElementById("paymentStatus");
 
@@ -80,24 +104,7 @@ function createOrUpdatePaymentStatus(statusPagamento) {
       qrSection.appendChild(statusElement);
     }
   }
-function generateQrCode(code) {
-  if (!ticketQrCode || !code) return;
 
-  if (typeof QRCode === "undefined") {
-    console.error("Biblioteca QRCode não carregada.");
-    return;
-  }
-
-  QRCode.toCanvas(ticketQrCode, code, {
-    width: 170,
-    margin: 1,
-    errorCorrectionLevel: "M"
-  }, (error) => {
-    if (error) {
-      console.error("Erro ao gerar QR Code:", error);
-    }
-  });
-}
   const colors = getPaymentStatusColor(statusPagamento);
 
   statusElement.textContent = `Status do pagamento: ${getPaymentStatusLabel(statusPagamento)}`;
@@ -133,24 +140,24 @@ async function loadTicket() {
       return;
     }
 
+    const codigoValidacao = ingresso.codigoValidacao || pedido.codigoValidacao || "-";
+
     ticketName.textContent = comprador?.fullName || "-";
     ticketEmail.textContent = comprador?.email || "-";
     ticketPhone.textContent = comprador?.phone || "-";
     ticketBirthDate.textContent = formatDate(comprador?.birthDate);
     ticketQuantity.textContent = `${ingresso.quantidade || pedido.quantidade} ingresso(s)`;
     ticketTotal.textContent = formatCurrency(ingresso.valorTotal || pedido.valorTotal);
-   const codigoValidacao = ingresso.codigoValidacao || pedido.codigoValidacao || "-";
+    ticketCode.textContent = codigoValidacao;
 
-ticketCode.textContent = codigoValidacao;
-generateQrCode(codigoValidacao);
-
+    generateQrCode(codigoValidacao);
     createOrUpdatePaymentStatus(ingresso.statusPagamento || pedido.statusPagamento);
 
     const updatedPurchase = {
       ...purchaseData,
       pedidoId: data.pedidoId,
       ingressoId: ingresso.ingressoId || pedido.ingressoId,
-      codigoValidacao: ingresso.codigoValidacao || pedido.codigoValidacao,
+      codigoValidacao,
       statusPagamento: ingresso.statusPagamento || pedido.statusPagamento,
       quantity: ingresso.quantidade || pedido.quantidade,
       totalPrice: ingresso.valorTotal || pedido.valorTotal
