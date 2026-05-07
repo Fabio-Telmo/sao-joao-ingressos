@@ -53,7 +53,7 @@ function getPaymentStatusType(statusPagamento) {
 
 function buildWhatsappLink({ whatsappNumber, buyer, pedidoId, valorTotal }) {
   const message = encodeURIComponent(
-    `Olá, segue o comprovante do pagamento do ingresso do São João.\n\n` +
+    `Olá, segue o comprovante do pagamento do ingresso do Arraiá do CETEP.\n\n` +
     `Nome: ${buyer.fullName}\n` +
     `Email: ${buyer.email}\n` +
     `Pedido: ${pedidoId}\n` +

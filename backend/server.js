@@ -17,7 +17,7 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 app.get("/", (req, res) => {
-  res.send("Backend do São João está funcionando.");
+  res.send("Backend do Arraiá do CETEP está funcionando.");
 });
 
 app.get("/api/status", (req, res) => {
