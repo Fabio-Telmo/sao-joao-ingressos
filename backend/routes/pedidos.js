@@ -48,24 +48,53 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const pedidoRef = db.collection("pedidos").doc();
+    const ingressoRef = db.collection("ingressos").doc();
+
+    const ticketCode = generateTicketCode();
+
     const pedido = {
       compradorId,
       quantidade,
       valorUnitario: TICKET_PRICE,
       valorTotal: quantidade * TICKET_PRICE,
-      status: "pendente",
+      status: "ativo",
+      statusPagamento: "nao_pago",
       metodoPagamento: "pix_manual",
+      ingressoId: ingressoRef.id,
+      codigoValidacao: ticketCode,
       criadoEm: new Date(),
       atualizadoEm: new Date()
     };
 
-    const docRef = await db.collection("pedidos").add(pedido);
+    const ingresso = {
+      pedidoId: pedidoRef.id,
+      compradorId,
+      codigoValidacao: ticketCode,
+      quantidade,
+      valorTotal: quantidade * TICKET_PRICE,
+      statusPagamento: "nao_pago",
+      usado: false,
+      usadoEm: null,
+      criadoEm: new Date(),
+      atualizadoEm: new Date()
+    };
+
+    const batch = db.batch();
+
+    batch.set(pedidoRef, pedido);
+    batch.set(ingressoRef, ingresso);
+
+    await batch.commit();
 
     res.status(201).json({
       status: "sucesso",
-      message: "Pedido criado com sucesso.",
-      pedidoId: docRef.id,
-      pedido
+      message: "Pedido e ingresso criados com sucesso.",
+      pedidoId: pedidoRef.id,
+      ingressoId: ingressoRef.id,
+      codigoValidacao: ticketCode,
+      pedido,
+      ingresso
     });
   } catch (error) {
     console.error("Erro ao criar pedido:", error);
@@ -80,17 +109,19 @@ router.post("/", async (req, res) => {
 
 router.get("/pendentes-pagamento", async (req, res) => {
   try {
-    const snapshot = await db
-      .collection("pedidos")
-      .where("status", "in", ["pendente", "aguardando_confirmacao"])
-      .get();
+    const snapshot = await db.collection("pedidos").get();
 
     const pedidos = [];
 
     for (const doc of snapshot.docs) {
       const pedido = doc.data();
 
+      if (pedido.statusPagamento === "pago") {
+        continue;
+      }
+
       let comprador = null;
+      let ingresso = null;
 
       if (pedido.compradorId) {
         const compradorDoc = await db
@@ -103,10 +134,22 @@ router.get("/pendentes-pagamento", async (req, res) => {
         }
       }
 
+      if (pedido.ingressoId) {
+        const ingressoDoc = await db
+          .collection("ingressos")
+          .doc(pedido.ingressoId)
+          .get();
+
+        if (ingressoDoc.exists) {
+          ingresso = ingressoDoc.data();
+        }
+      }
+
       pedidos.push({
         pedidoId: doc.id,
         ...pedido,
-        comprador
+        comprador,
+        ingresso
       });
     }
 
@@ -145,14 +188,34 @@ router.get("/:pedidoId", async (req, res) => {
       .doc(pedido.compradorId)
       .get();
 
+    let ingresso = null;
+
+    if (pedido.ingressoId) {
+      const ingressoDoc = await db
+        .collection("ingressos")
+        .doc(pedido.ingressoId)
+        .get();
+
+      if (ingressoDoc.exists) {
+        ingresso = {
+          ingressoId: ingressoDoc.id,
+          ...ingressoDoc.data()
+        };
+      }
+    }
+
     res.json({
       status: "sucesso",
       pedidoId,
       pedido,
       comprador: compradorDoc.exists ? compradorDoc.data() : null,
+      ingresso,
       pix: {
         key: process.env.PIX_KEY,
         receiverName: process.env.PIX_RECEIVER_NAME
+      },
+      whatsapp: {
+        number: process.env.WHATSAPP_NUMBER
       }
     });
   } catch (error) {
@@ -161,50 +224,6 @@ router.get("/:pedidoId", async (req, res) => {
     res.status(500).json({
       status: "erro",
       message: "Erro ao buscar pedido.",
-      error: error.message
-    });
-  }
-});
-
-router.post("/:pedidoId/avisar-pagamento", async (req, res) => {
-  try {
-    const { pedidoId } = req.params;
-
-    const pedidoRef = db.collection("pedidos").doc(pedidoId);
-    const pedidoDoc = await pedidoRef.get();
-
-    if (!pedidoDoc.exists) {
-      return res.status(404).json({
-        status: "erro",
-        message: "Pedido não encontrado."
-      });
-    }
-
-    const pedido = pedidoDoc.data();
-
-    if (pedido.status === "pago") {
-      return res.status(400).json({
-        status: "erro",
-        message: "Este pedido já foi confirmado como pago."
-      });
-    }
-
-    await pedidoRef.update({
-      status: "aguardando_confirmacao",
-      compradorAvisouPagamentoEm: new Date(),
-      atualizadoEm: new Date()
-    });
-
-    res.json({
-      status: "sucesso",
-      message: "Aviso de pagamento registrado. Aguarde a confirmação do administrador."
-    });
-  } catch (error) {
-    console.error("Erro ao avisar pagamento:", error);
-
-    res.status(500).json({
-      status: "erro",
-      message: "Erro ao registrar aviso de pagamento.",
       error: error.message
     });
   }
@@ -226,41 +245,42 @@ router.post("/:pedidoId/confirmar-pagamento", async (req, res) => {
 
     const pedido = pedidoDoc.data();
 
-    if (pedido.status === "pago") {
+    if (pedido.statusPagamento === "pago") {
       return res.status(400).json({
         status: "erro",
         message: "Este pedido já está pago."
       });
     }
 
-    const ticketCode = generateTicketCode();
+    let ingressoRef = null;
 
-    const ingresso = {
-      pedidoId,
-      compradorId: pedido.compradorId,
-      codigoValidacao: ticketCode,
-      quantidade: pedido.quantidade,
-      valorTotal: pedido.valorTotal,
-      usado: false,
-      usadoEm: null,
-      criadoEm: new Date()
-    };
+    if (pedido.ingressoId) {
+      ingressoRef = db.collection("ingressos").doc(pedido.ingressoId);
+    } else {
+      ingressoRef = db.collection("ingressos").doc();
+    }
 
-    const ingressoRef = await db.collection("ingressos").add(ingresso);
+    const batch = db.batch();
 
-    await pedidoRef.update({
-      status: "pago",
-      ingressoId: ingressoRef.id,
-      codigoValidacao: ticketCode,
+    batch.update(pedidoRef, {
+      statusPagamento: "pago",
       confirmadoManualEm: new Date(),
       atualizadoEm: new Date()
     });
 
+    batch.update(ingressoRef, {
+      statusPagamento: "pago",
+      pagoEm: new Date(),
+      atualizadoEm: new Date()
+    });
+
+    await batch.commit();
+
     res.json({
       status: "sucesso",
-      message: "Pagamento confirmado e ingresso criado.",
+      message: "Pagamento confirmado com sucesso.",
       ingressoId: ingressoRef.id,
-      codigoValidacao: ticketCode
+      codigoValidacao: pedido.codigoValidacao
     });
   } catch (error) {
     console.error("Erro ao confirmar pagamento:", error);

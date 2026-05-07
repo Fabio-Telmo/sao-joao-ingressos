@@ -1,167 +1,153 @@
-   const API_URL = "https://sao-joao-ingressos.onrender.com";
+const API_URL = "https://sao-joao-ingressos.onrender.com";
 
-  
-  const buyerName = document.getElementById("buyerName");
-  const buyerEmail = document.getElementById("buyerEmail");
-  const ticketQuantity = document.getElementById("ticketQuantity");
-  const totalPrice = document.getElementById("totalPrice");
-  const pixCode = document.getElementById("pixCode");
-  const statusBox = document.getElementById("statusBox");
-  const copyPixButton = document.getElementById("copyPixButton");
-  const simulatePaymentButton = document.getElementById("simulatePaymentButton");
-  const ticketButton = document.getElementById("ticketButton");
-  const backButton = document.getElementById("backButton");
-  const pixKeyText = document.getElementById("pixKeyText");
-  const pixReceiverText = document.getElementById("pixReceiverText");
-  const pixValueText = document.getElementById("pixValueText");
-  const copyPixKeyButton = document.getElementById("copyPixKeyButton");
+const buyerName = document.getElementById("buyerName");
+const buyerEmail = document.getElementById("buyerEmail");
+const ticketQuantity = document.getElementById("ticketQuantity");
+const totalPrice = document.getElementById("totalPrice");
+const pixCode = document.getElementById("pixCode");
+const statusBox = document.getElementById("statusBox");
+const copyPixButton = document.getElementById("copyPixButton");
+const simulatePaymentButton = document.getElementById("simulatePaymentButton");
+const ticketButton = document.getElementById("ticketButton");
+const backButton = document.getElementById("backButton");
 
 let currentPixKey = "";
-  const purchaseData = JSON.parse(localStorage.getItem("saoJoaoPurchase"));
+let currentWhatsappLink = "";
+let currentPurchaseData = JSON.parse(localStorage.getItem("saoJoaoPurchase"));
 
-  function formatCurrency(value) {
-    return Number(value).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
+function formatCurrency(value) {
+  return Number(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function setStatus(text, type = "waiting") {
+  statusBox.textContent = text;
+  statusBox.classList.remove("approved", "error");
+
+  if (type === "approved") {
+    statusBox.classList.add("approved");
   }
 
-  function setStatus(text, type = "waiting") {
-    statusBox.textContent = text;
-    statusBox.classList.remove("approved", "error");
+  if (type === "error") {
+    statusBox.classList.add("error");
+  }
+}
 
-    if (type === "approved") {
-      statusBox.classList.add("approved");
-    }
-
-    if (type === "error") {
-      statusBox.classList.add("error");
-    }
+function getPaymentStatusText(statusPagamento) {
+  if (statusPagamento === "pago") {
+    return "Pagamento confirmado";
   }
 
-  async function loadPaymentData() {
-    if (!purchaseData || !purchaseData.pedidoId) {
-      setStatus("Pedido não encontrado. Volte para a compra e refaça o pedido.", "error");
-      copyPixButton.disabled = true;
-      simulatePaymentButton.disabled = true;
-      return;
-    }
+  return "Pagamento ainda não confirmado";
+}
 
-    try {
-      const response = await fetch(`${API_URL}/api/pedidos/${purchaseData.pedidoId}`);
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao buscar pedido.");
-      }
-
-      buyerName.textContent = data.comprador.fullName;
-      buyerEmail.textContent = data.comprador.email;
-      ticketQuantity.textContent = `${data.pedido.quantidade} ingresso(s)`;
-      totalPrice.textContent = formatCurrency(data.pedido.valorTotal);
-
-      currentPixKey = data.pix.key || "";
-
-pixKeyText.textContent = currentPixKey || "Chave Pix não configurada";
-pixReceiverText.textContent = `Recebedor: ${data.pix.receiverName || "Não informado"}`;
-pixValueText.textContent = `Valor: ${formatCurrency(data.pedido.valorTotal)}`;
-
-pixCode.value =
-  `Chave Pix: ${data.pix.key}\n` +
-  `Recebedor: ${data.pix.receiverName}\n` +
-  `Valor: ${formatCurrency(data.pedido.valorTotal)}\n` +
-  `Identificação do pedido: ${data.pedidoId}`;
-
-      if (data.pedido.status === "pendente") {
-        setStatus("Faça o Pix e depois clique em “Já paguei”.");
-      }
-
-      if (data.pedido.status === "aguardando_confirmacao") {
-        setStatus("Pagamento informado. Aguarde a confirmação do administrador.");
-        simulatePaymentButton.disabled = true;
-        simulatePaymentButton.textContent = "Aguardando confirmação";
-      }
-
-      if (data.pedido.status === "pago") {
-        setStatus("Pagamento confirmado. Seu ingresso está liberado.", "approved");
-        simulatePaymentButton.style.display = "none";
-        ticketButton.style.display = "block";
-
-        const updatedPurchase = {
-          ...purchaseData,
-          status: "pago",
-          ticketCode: data.pedido.codigoValidacao
-        };
-
-        localStorage.setItem("saoJoaoPurchase", JSON.stringify(updatedPurchase));
-      }
-    } catch (error) {
-      setStatus(error.message, "error");
-    }
+function getPaymentStatusType(statusPagamento) {
+  if (statusPagamento === "pago") {
+    return "approved";
   }
 
-  async function copyPixCode() {
-    try {
-      await navigator.clipboard.writeText(pixCode.value);
-      copyPixButton.textContent = "Dados copiados";
+  return "waiting";
+}
 
-      setTimeout(() => {
-        copyPixButton.textContent = "Copiar código Pix";
-      }, 1500);
-    } catch (error) {
-      pixCode.select();
-      document.execCommand("copy");
-      copyPixButton.textContent = "Dados copiados";
+function buildWhatsappLink({ whatsappNumber, buyer, pedidoId, valorTotal }) {
+  const message = encodeURIComponent(
+    `Olá, segue o comprovante do pagamento do ingresso do São João.\n\n` +
+    `Nome: ${buyer.fullName}\n` +
+    `Email: ${buyer.email}\n` +
+    `Pedido: ${pedidoId}\n` +
+    `Valor: ${formatCurrency(valorTotal)}`
+  );
 
-      setTimeout(() => {
-        copyPixButton.textContent = "Copiar código Pix";
-      }, 1500);
-    }
+  return `https://wa.me/${whatsappNumber}?text=${message}`;
+}
+
+async function loadPaymentData() {
+  if (!currentPurchaseData || !currentPurchaseData.pedidoId) {
+    setStatus("Pedido não encontrado. Volte para a compra e refaça o pedido.", "error");
+
+    if (copyPixButton) copyPixButton.disabled = true;
+    if (simulatePaymentButton) simulatePaymentButton.disabled = true;
+    if (ticketButton) ticketButton.style.display = "none";
+
+    return;
   }
 
-  async function notifyPayment() {
-    if (!purchaseData || !purchaseData.pedidoId) {
-      setStatus("Pedido não encontrado.", "error");
-      return;
+  try {
+    const response = await fetch(`${API_URL}/api/pedidos/${currentPurchaseData.pedidoId}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao buscar pedido.");
     }
 
-    simulatePaymentButton.disabled = true;
-    simulatePaymentButton.textContent = "Enviando aviso...";
+    const comprador = data.comprador;
+    const pedido = data.pedido;
+    const ingresso = data.ingresso;
 
-    try {
-      const response = await fetch(`${API_URL}/api/pedidos/${purchaseData.pedidoId}/avisar-pagamento`, {
-        method: "POST"
+    buyerName.textContent = comprador?.fullName || "Comprador não encontrado";
+    buyerEmail.textContent = comprador?.email || "-";
+    ticketQuantity.textContent = `${pedido.quantidade} ingresso(s)`;
+    totalPrice.textContent = formatCurrency(pedido.valorTotal);
+
+    currentPixKey = data.pix?.key || "";
+
+    pixCode.value =
+      `Chave Pix: ${data.pix?.key || "Não configurada"}\n` +
+      `Recebedor: ${data.pix?.receiverName || "Não informado"}\n` +
+      `Valor: ${formatCurrency(pedido.valorTotal)}\n` +
+      `Pedido: ${data.pedidoId}\n` +
+      `Código do ingresso: ${ingresso?.codigoValidacao || pedido.codigoValidacao || "-"}`;
+
+    const updatedPurchase = {
+      ...currentPurchaseData,
+      pedidoId: data.pedidoId,
+      ingressoId: ingresso?.ingressoId || pedido.ingressoId,
+      codigoValidacao: ingresso?.codigoValidacao || pedido.codigoValidacao,
+      compradorId: pedido.compradorId,
+      quantity: pedido.quantidade,
+      unitPrice: pedido.valorUnitario,
+      totalPrice: pedido.valorTotal,
+      status: pedido.status,
+      statusPagamento: pedido.statusPagamento
+    };
+
+    localStorage.setItem("saoJoaoPurchase", JSON.stringify(updatedPurchase));
+    currentPurchaseData = updatedPurchase;
+
+    setStatus(
+      getPaymentStatusText(pedido.statusPagamento),
+      getPaymentStatusType(pedido.statusPagamento)
+    );
+
+    if (data.whatsapp?.number) {
+      currentWhatsappLink = buildWhatsappLink({
+        whatsappNumber: data.whatsapp.number,
+        buyer: comprador,
+        pedidoId: data.pedidoId,
+        valorTotal: pedido.valorTotal
       });
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || "Erro ao avisar pagamento.");
-      }
-
-      setStatus("Pagamento informado. Aguarde a confirmação do administrador.");
-      simulatePaymentButton.textContent = "Aguardando confirmação";
-    } catch (error) {
-      setStatus(error.message, "error");
+      simulatePaymentButton.textContent = "Enviar comprovante pelo WhatsApp";
       simulatePaymentButton.disabled = false;
-      simulatePaymentButton.textContent = "Já paguei";
+    } else {
+      simulatePaymentButton.textContent = "WhatsApp não configurado";
+      simulatePaymentButton.disabled = true;
     }
+
+    ticketButton.style.display = "block";
+    ticketButton.textContent = "Ver ingresso";
+  } catch (error) {
+    setStatus(error.message, "error");
+
+    if (copyPixButton) copyPixButton.disabled = true;
+    if (simulatePaymentButton) simulatePaymentButton.disabled = true;
+    if (ticketButton) ticketButton.style.display = "none";
   }
+}
 
-  copyPixButton.addEventListener("click", copyPixCode);
-
-  simulatePaymentButton.textContent = "Já paguei";
-  simulatePaymentButton.addEventListener("click", notifyPayment);
-
-  ticketButton.addEventListener("click", () => {
-    window.location.href = "ingresso.html";
-  });
-
-  backButton.addEventListener("click", () => {
-    window.location.href = "compra.html";
-  });
-  copyPixKeyButton.addEventListener("click", copyPixKey);
-  async function copyPixKey() {
+async function copyPixKey() {
   if (!currentPixKey) {
     setStatus("Chave Pix não encontrada.", "error");
     return;
@@ -169,26 +155,44 @@ pixCode.value =
 
   try {
     await navigator.clipboard.writeText(currentPixKey);
-
-    copyPixKeyButton.textContent = "Copiado";
+    copyPixButton.textContent = "Chave copiada";
 
     setTimeout(() => {
-      copyPixKeyButton.textContent = "Copiar";
+      copyPixButton.textContent = "Copiar chave Pix";
     }, 1500);
   } catch (error) {
-    const tempInput = document.createElement("input");
-    tempInput.value = currentPixKey;
-    document.body.appendChild(tempInput);
-    tempInput.select();
+    pixCode.select();
     document.execCommand("copy");
-    document.body.removeChild(tempInput);
 
-    copyPixKeyButton.textContent = "Copiado";
+    copyPixButton.textContent = "Dados copiados";
 
     setTimeout(() => {
-      copyPixKeyButton.textContent = "Copiar";
+      copyPixButton.textContent = "Copiar chave Pix";
     }, 1500);
   }
 }
 
-  loadPaymentData();
+function openWhatsapp() {
+  if (!currentWhatsappLink) {
+    setStatus("WhatsApp não configurado.", "error");
+    return;
+  }
+
+  window.open(currentWhatsappLink, "_blank");
+}
+
+copyPixButton.textContent = "Copiar chave Pix";
+copyPixButton.addEventListener("click", copyPixKey);
+
+simulatePaymentButton.textContent = "Enviar comprovante pelo WhatsApp";
+simulatePaymentButton.addEventListener("click", openWhatsapp);
+
+ticketButton.addEventListener("click", () => {
+  window.location.href = "ingresso.html";
+});
+
+backButton.addEventListener("click", () => {
+  window.location.href = "compra.html";
+});
+
+loadPaymentData();

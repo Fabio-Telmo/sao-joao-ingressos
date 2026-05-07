@@ -1,66 +1,157 @@
-    const buyerData = JSON.parse(localStorage.getItem("saoJoaoBuyer"));
-    const purchaseData = JSON.parse(localStorage.getItem("saoJoaoPurchase"));
+const API_URL = "https://sao-joao-ingressos.onrender.com";
 
-    const ticketContainer = document.getElementById("ticketContainer");
-    const errorCard = document.getElementById("errorCard");
+const purchaseData = JSON.parse(localStorage.getItem("saoJoaoPurchase"));
 
-    const ticketName = document.getElementById("ticketName");
-    const ticketEmail = document.getElementById("ticketEmail");
-    const ticketPhone = document.getElementById("ticketPhone");
-    const ticketBirthDate = document.getElementById("ticketBirthDate");
-    const ticketQuantity = document.getElementById("ticketQuantity");
-    const ticketTotal = document.getElementById("ticketTotal");
-    const ticketCode = document.getElementById("ticketCode");
+const ticketContainer = document.getElementById("ticketContainer");
+const errorCard = document.getElementById("errorCard");
 
-    const printButton = document.getElementById("printButton");
-    const newPurchaseButton = document.getElementById("newPurchaseButton");
-    const goToRegisterButton = document.getElementById("goToRegisterButton");
+const ticketName = document.getElementById("ticketName");
+const ticketEmail = document.getElementById("ticketEmail");
+const ticketPhone = document.getElementById("ticketPhone");
+const ticketBirthDate = document.getElementById("ticketBirthDate");
+const ticketQuantity = document.getElementById("ticketQuantity");
+const ticketTotal = document.getElementById("ticketTotal");
+const ticketCode = document.getElementById("ticketCode");
 
-    function formatCurrency(value) {
-      return Number(value).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-      });
+const printButton = document.getElementById("printButton");
+const newPurchaseButton = document.getElementById("newPurchaseButton");
+const goToRegisterButton = document.getElementById("goToRegisterButton");
+
+function formatCurrency(value) {
+  return Number(value).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL"
+  });
+}
+
+function formatDate(dateValue) {
+  if (!dateValue) return "-";
+
+  const [year, month, day] = dateValue.split("-");
+  return `${day}/${month}/${year}`;
+}
+
+function showError(message = "Não encontrei um ingresso válido. Volte para o cadastro e faça o fluxo novamente.") {
+  ticketContainer.style.display = "none";
+  errorCard.style.display = "block";
+
+  const errorText = errorCard.querySelector("p");
+
+  if (errorText) {
+    errorText.textContent = message;
+  }
+}
+
+function getPaymentStatusLabel(statusPagamento) {
+  if (statusPagamento === "pago") {
+    return "Pago";
+  }
+
+  return "Não pago";
+}
+
+function getPaymentStatusColor(statusPagamento) {
+  if (statusPagamento === "pago") {
+    return {
+      background: "rgba(142, 229, 157, 0.34)",
+      color: "#23633a",
+      border: "rgba(38, 166, 91, 0.28)"
+    };
+  }
+
+  return {
+    background: "rgba(255, 216, 107, 0.38)",
+    color: "#735000",
+    border: "rgba(183, 121, 0, 0.25)"
+  };
+}
+
+function createOrUpdatePaymentStatus(statusPagamento) {
+  let statusElement = document.getElementById("paymentStatus");
+
+  if (!statusElement) {
+    statusElement = document.createElement("div");
+    statusElement.id = "paymentStatus";
+
+    const qrSection = document.querySelector(".qr-section");
+
+    if (qrSection) {
+      qrSection.appendChild(statusElement);
+    }
+  }
+
+  const colors = getPaymentStatusColor(statusPagamento);
+
+  statusElement.textContent = `Status do pagamento: ${getPaymentStatusLabel(statusPagamento)}`;
+  statusElement.style.marginTop = "12px";
+  statusElement.style.padding = "10px 12px";
+  statusElement.style.borderRadius = "14px";
+  statusElement.style.fontWeight = "900";
+  statusElement.style.background = colors.background;
+  statusElement.style.color = colors.color;
+  statusElement.style.border = `1px solid ${colors.border}`;
+}
+
+async function loadTicket() {
+  if (!purchaseData || !purchaseData.pedidoId) {
+    showError("Pedido não encontrado. Volte para a compra e gere um pedido novamente.");
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_URL}/api/pedidos/${purchaseData.pedidoId}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || "Erro ao buscar ingresso.");
     }
 
-    function formatDate(dateValue) {
-      if (!dateValue) return "-";
+    const comprador = data.comprador;
+    const pedido = data.pedido;
+    const ingresso = data.ingresso;
 
-      const [year, month, day] = dateValue.split("-");
-      return `${day}/${month}/${year}`;
+    if (!pedido || !ingresso) {
+      showError("Ingresso não encontrado para este pedido.");
+      return;
     }
 
-    function showError() {
-      ticketContainer.style.display = "none";
-      errorCard.style.display = "block";
-    }
+    ticketName.textContent = comprador?.fullName || "-";
+    ticketEmail.textContent = comprador?.email || "-";
+    ticketPhone.textContent = comprador?.phone || "-";
+    ticketBirthDate.textContent = formatDate(comprador?.birthDate);
+    ticketQuantity.textContent = `${ingresso.quantidade || pedido.quantidade} ingresso(s)`;
+    ticketTotal.textContent = formatCurrency(ingresso.valorTotal || pedido.valorTotal);
+    ticketCode.textContent = ingresso.codigoValidacao || pedido.codigoValidacao || "-";
 
-    function loadTicket() {
-      if (!buyerData || !purchaseData || purchaseData.status !== "pago") {
-        showError();
-        return;
-      }
+    createOrUpdatePaymentStatus(ingresso.statusPagamento || pedido.statusPagamento);
 
-      ticketName.textContent = buyerData.fullName;
-      ticketEmail.textContent = buyerData.email;
-      ticketPhone.textContent = buyerData.phone;
-      ticketBirthDate.textContent = formatDate(buyerData.birthDate);
-      ticketQuantity.textContent = `${purchaseData.quantity} ingresso(s)`;
-      ticketTotal.textContent = formatCurrency(purchaseData.totalPrice);
-      ticketCode.textContent = purchaseData.ticketCode || "SJ-CODIGO-NAO-GERADO";
-    }
+    const updatedPurchase = {
+      ...purchaseData,
+      pedidoId: data.pedidoId,
+      ingressoId: ingresso.ingressoId || pedido.ingressoId,
+      codigoValidacao: ingresso.codigoValidacao || pedido.codigoValidacao,
+      statusPagamento: ingresso.statusPagamento || pedido.statusPagamento,
+      quantity: ingresso.quantidade || pedido.quantidade,
+      totalPrice: ingresso.valorTotal || pedido.valorTotal
+    };
 
-    printButton.addEventListener("click", () => {
-      window.print();
-    });
+    localStorage.setItem("saoJoaoPurchase", JSON.stringify(updatedPurchase));
+  } catch (error) {
+    showError(error.message);
+  }
+}
 
-    newPurchaseButton.addEventListener("click", () => {
-      localStorage.removeItem("saoJoaoPurchase");
-      window.location.href = "compra.html";
-    });
+printButton.addEventListener("click", () => {
+  window.print();
+});
 
-    goToRegisterButton.addEventListener("click", () => {
-      window.location.href = "cadastro.html";
-    });
+newPurchaseButton.addEventListener("click", () => {
+  localStorage.removeItem("saoJoaoPurchase");
+  window.location.href = "compra.html";
+});
 
-    loadTicket();
+goToRegisterButton.addEventListener("click", () => {
+  window.location.href = "cadastro.html";
+});
+
+loadTicket();

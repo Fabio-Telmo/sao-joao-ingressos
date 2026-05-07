@@ -130,14 +130,17 @@
       }
 
       const purchaseData = {
-        pedidoId: data.pedidoId,
-        compradorId: buyerData.compradorId,
-        quantity: data.pedido.quantidade,
-        unitPrice: data.pedido.valorUnitario,
-        totalPrice: data.pedido.valorTotal,
-        status: data.pedido.status,
-        createdAt: new Date().toISOString()
-      };
+  pedidoId: data.pedidoId,
+  ingressoId: data.ingressoId,
+  codigoValidacao: data.codigoValidacao,
+  compradorId: buyerData.compradorId,
+  quantity: data.pedido.quantidade,
+  unitPrice: data.pedido.valorUnitario,
+  totalPrice: data.pedido.valorTotal,
+  status: data.pedido.status,
+  statusPagamento: data.pedido.statusPagamento,
+  createdAt: new Date().toISOString()
+};
 
       localStorage.setItem("saoJoaoPurchase", JSON.stringify(purchaseData));
 
