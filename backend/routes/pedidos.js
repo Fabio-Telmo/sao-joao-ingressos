@@ -1,5 +1,6 @@
 const express = require("express");
 const db = require("../services/firebase");
+const requireAdmin = require("../middlewares/adminAuth");
 
 const router = express.Router();
 
@@ -107,7 +108,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/pendentes-pagamento", async (req, res) => {
+router.get("/pendentes-pagamento", requireAdmin, async (req, res) => {
   try {
     const snapshot = await db.collection("pedidos").get();
 
@@ -229,7 +230,7 @@ router.get("/:pedidoId", async (req, res) => {
   }
 });
 
-router.post("/:pedidoId/confirmar-pagamento", async (req, res) => {
+router.post("/:pedidoId/confirmar-pagamento", requireAdmin, async (req, res) => {
   try {
     const { pedidoId } = req.params;
 
