@@ -69,35 +69,14 @@ function getPaymentStatusColor(statusPagamento) {
 
 function generateQrCode(code) {
   if (!ticketQrCode || !code || code === "-") {
-    console.error("Canvas ou código do ingresso não encontrado.");
+    console.error("Imagem ou código do ingresso não encontrado.");
     return;
   }
 
-  if (typeof QRCode === "undefined") {
-    console.error("Biblioteca QRCode não carregada.");
-    ticketCode.textContent = `${code} — QRCode não carregou`;
-    return;
-  }
+  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(code)}`;
 
-  QRCode.toCanvas(
-    ticketQrCode,
-    code,
-    {
-      width: 180,
-      margin: 2,
-      errorCorrectionLevel: "M",
-      color: {
-        dark: "#000000",
-        light: "#ffffff"
-      }
-    },
-    (error) => {
-      if (error) {
-        console.error("Erro ao gerar QR Code:", error);
-        ticketCode.textContent = `${code} — erro ao gerar QR`;
-      }
-    }
-  );
+  ticketQrCode.src = qrCodeUrl;
+  ticketQrCode.alt = `QR Code do ingresso ${code}`;
 }
 
 function createOrUpdatePaymentStatus(statusPagamento) {

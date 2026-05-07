@@ -293,7 +293,7 @@
       border: 1px solid rgba(100, 199, 255, 0.32);
     }
 
-   .qr-code {
+ .qr-code {
   width: 210px;
   height: 210px;
   margin: 0 auto 12px;
@@ -307,10 +307,11 @@
 }
 
 #ticketQrCode {
-  width: 180px !important;
-  height: 180px !important;
+  width: 180px;
+  height: 180px;
   display: block;
   background: #ffffff;
+  object-fit: contain;
 }
 
     .qr-pattern {

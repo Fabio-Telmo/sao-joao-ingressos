@@ -28,8 +28,8 @@
     <section class="container" id="ticketContainer">
       <div class="success-card">
         <div class="success-icon">✓</div>
-        <h1>Ingresso liberado</h1>
-        <p>Pagamento aprovado. Apresente este ingresso na entrada do evento.</p>
+        <h1>Ingresso gerado</h1>
+        <p>Apresente este ingresso na entrada. A liberação depende do status de pagamento.</p>
       </div>
 
       <article class="ticket" id="ticket">
@@ -69,19 +69,19 @@
             </div>
 
             <div class="ticket-info">
-              <span>Valor pago</span>
+              <span>Valor</span>
               <strong id="ticketTotal">-</strong>
             </div>
           </div>
 
           <div class="qr-section">
-  <div class="qr-code" aria-label="QR Code de validação">
-    <canvas id="ticketQrCode"></canvas>
-  </div>
+            <div class="qr-code" aria-label="QR Code de validação">
+              <img id="ticketQrCode" alt="QR Code do ingresso" />
+            </div>
 
-  <p>Use este QR Code para validar o ingresso na entrada.</p>
-  <div class="ticket-code" id="ticketCode">-</div>
-</div>
+            <p>Use este QR Code para validar o ingresso na entrada.</p>
+            <div class="ticket-code" id="ticketCode">-</div>
+          </div>
         </div>
       </article>
 
@@ -91,17 +91,17 @@
       </div>
 
       <p class="print-note">
-        Nesta versão, o botão usa a impressão do navegador. Depois, o backend poderá gerar um PDF real e salvar no Firebase Storage.
+        O QR Code contém o código de validação do ingresso. O administrador verificará se está pago e se já foi usado.
       </p>
     </section>
 
     <section class="error-card" id="errorCard">
       <h1>Ingresso não disponível</h1>
-      <p>Não encontrei uma compra paga. Volte para o cadastro e faça o fluxo novamente.</p>
+      <p>Não encontrei um ingresso válido. Volte para o cadastro e faça o fluxo novamente.</p>
       <button class="button primary" type="button" id="goToRegisterButton">Ir para cadastro</button>
     </section>
   </main>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
-<script src="ingresso.js"></script>
+
+  <script src="ingresso.js"></script>
 </body>
 </html>
