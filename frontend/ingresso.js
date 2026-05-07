@@ -12,6 +12,7 @@ const ticketBirthDate = document.getElementById("ticketBirthDate");
 const ticketQuantity = document.getElementById("ticketQuantity");
 const ticketTotal = document.getElementById("ticketTotal");
 const ticketCode = document.getElementById("ticketCode");
+const ticketQrCode = document.getElementById("ticketQrCode");
 
 const printButton = document.getElementById("printButton");
 const newPurchaseButton = document.getElementById("newPurchaseButton");
@@ -79,7 +80,24 @@ function createOrUpdatePaymentStatus(statusPagamento) {
       qrSection.appendChild(statusElement);
     }
   }
+function generateQrCode(code) {
+  if (!ticketQrCode || !code) return;
 
+  if (typeof QRCode === "undefined") {
+    console.error("Biblioteca QRCode não carregada.");
+    return;
+  }
+
+  QRCode.toCanvas(ticketQrCode, code, {
+    width: 170,
+    margin: 1,
+    errorCorrectionLevel: "M"
+  }, (error) => {
+    if (error) {
+      console.error("Erro ao gerar QR Code:", error);
+    }
+  });
+}
   const colors = getPaymentStatusColor(statusPagamento);
 
   statusElement.textContent = `Status do pagamento: ${getPaymentStatusLabel(statusPagamento)}`;
@@ -121,7 +139,10 @@ async function loadTicket() {
     ticketBirthDate.textContent = formatDate(comprador?.birthDate);
     ticketQuantity.textContent = `${ingresso.quantidade || pedido.quantidade} ingresso(s)`;
     ticketTotal.textContent = formatCurrency(ingresso.valorTotal || pedido.valorTotal);
-    ticketCode.textContent = ingresso.codigoValidacao || pedido.codigoValidacao || "-";
+   const codigoValidacao = ingresso.codigoValidacao || pedido.codigoValidacao || "-";
+
+ticketCode.textContent = codigoValidacao;
+generateQrCode(codigoValidacao);
 
     createOrUpdatePaymentStatus(ingresso.statusPagamento || pedido.statusPagamento);
 

@@ -75,13 +75,13 @@
           </div>
 
           <div class="qr-section">
-            <div class="qr-code" aria-label="QR Code de validação simulado">
-              <div class="qr-pattern"></div>
-            </div>
+  <div class="qr-code" aria-label="QR Code de validação">
+    <canvas id="ticketQrCode"></canvas>
+  </div>
 
-            <p>Use este código para validar o ingresso na entrada.</p>
-            <div class="ticket-code" id="ticketCode">-</div>
-          </div>
+  <p>Use este QR Code para validar o ingresso na entrada.</p>
+  <div class="ticket-code" id="ticketCode">-</div>
+</div>
         </div>
       </article>
 
@@ -101,6 +101,7 @@
       <button class="button primary" type="button" id="goToRegisterButton">Ir para cadastro</button>
     </section>
   </main>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="ingresso.js"></script>
 </body>
 </html>
