@@ -293,18 +293,25 @@
       border: 1px solid rgba(100, 199, 255, 0.32);
     }
 
-    .qr-code {
-      width: 172px;
-      height: 172px;
-      margin: 0 auto 12px;
-      padding: 13px;
-      border-radius: 22px;
-      background: var(--branco);
-      box-shadow: 0 12px 24px rgba(80, 48, 20, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+   .qr-code {
+  width: 210px;
+  height: 210px;
+  margin: 0 auto 12px;
+  padding: 12px;
+  border-radius: 22px;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(80, 48, 20, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#ticketQrCode {
+  width: 180px !important;
+  height: 180px !important;
+  display: block;
+  background: #ffffff;
+}
 
     .qr-pattern {
       width: 132px;

@@ -68,10 +68,14 @@ function getPaymentStatusColor(statusPagamento) {
 }
 
 function generateQrCode(code) {
-  if (!ticketQrCode || !code || code === "-") return;
+  if (!ticketQrCode || !code || code === "-") {
+    console.error("Canvas ou código do ingresso não encontrado.");
+    return;
+  }
 
   if (typeof QRCode === "undefined") {
     console.error("Biblioteca QRCode não carregada.");
+    ticketCode.textContent = `${code} — QRCode não carregou`;
     return;
   }
 
@@ -79,13 +83,18 @@ function generateQrCode(code) {
     ticketQrCode,
     code,
     {
-      width: 170,
-      margin: 1,
-      errorCorrectionLevel: "M"
+      width: 180,
+      margin: 2,
+      errorCorrectionLevel: "M",
+      color: {
+        dark: "#000000",
+        light: "#ffffff"
+      }
     },
     (error) => {
       if (error) {
         console.error("Erro ao gerar QR Code:", error);
+        ticketCode.textContent = `${code} — erro ao gerar QR`;
       }
     }
   );
