@@ -178,6 +178,7 @@
     <div class="actions-top">
   <button class="refresh" id="refreshButton">Atualizar pedidos</button>
   <button class="refresh" id="logoutButton" type="button">Sair do admin</button>
+  <button class="refresh" id="configButton">Configurações</button>
 </div>
 
     <section id="ordersList">
@@ -322,7 +323,9 @@
         alert(error.message);
       }
     }
-
+document.getElementById("configButton")?.addEventListener("click", () => {
+  window.location.href = "admin-config.html";
+});
     refreshButton.addEventListener("click", loadOrders);
     document.getElementById("logoutButton")?.addEventListener("click", () => {
   localStorage.removeItem("saoJoaoAdminToken");

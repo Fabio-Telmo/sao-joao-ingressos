@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configurações | Arraiá do CETEP</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #fff5d8, #ffe6ef 45%, #e5f7ff);
+      color: #32213a;
+      padding: 20px;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    header h1 {
+      color: #3b2550;
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    header p {
+      color: #6b5873;
+      line-height: 1.5;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 22px;
+      padding: 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 14px 30px rgba(80, 48, 20, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+
+    .card h2 {
+      color: #3b2550;
+      font-size: 1.25rem;
+      margin-bottom: 14px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #7a687f;
+      margin-bottom: 6px;
+    }
+
+    input, select {
+      width: 100%;
+      min-height: 48px;
+      border: 2px solid rgba(100, 199, 255, 0.38);
+      border-radius: 14px;
+      padding: 0 12px;
+      font-size: 1rem;
+      outline: none;
+      background: white;
+      color: #32213a;
+    }
+
+    input:focus, select:focus {
+      border-color: #ff9f43;
+      box-shadow: 0 0 0 4px rgba(255, 159, 67, 0.18);
+    }
+
+    button {
+      border: none;
+      border-radius: 14px;
+      padding: 13px 16px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .primary {
+      background: linear-gradient(90deg, #ff8a3d, #ff5fa2, #8d74ff);
+      color: white;
+      width: 100%;
+      margin-top: 14px;
+    }
+
+    .secondary {
+      background: rgba(255, 255, 255, 0.86);
+      color: #493051;
+      border: 2px solid rgba(255, 159, 67, 0.35);
+    }
+
+    .success {
+      background: linear-gradient(90deg, #36c36f, #23b8ff);
+      color: white;
+    }
+
+    .lote-card {
+      padding: 14px;
+      border-radius: 16px;
+      background: rgba(255, 248, 231, 0.9);
+      border: 1px solid rgba(255, 159, 67, 0.25);
+      margin-bottom: 10px;
+    }
+
+    .lote-card strong {
+      display: block;
+      color: #3b2550;
+      margin-bottom: 6px;
+    }
+
+    .lote-card p {
+      color: #6b5873;
+      line-height: 1.5;
+      font-size: 0.92rem;
+      margin-bottom: 8px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 900;
+      background: rgba(142, 229, 157, 0.35);
+      color: #23633a;
+      margin-bottom: 8px;
+    }
+
+    .message {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 14px;
+      font-weight: 800;
+      background: rgba(100, 199, 255, 0.2);
+      color: #245b74;
+    }
+
+    .message.show {
+      display: block;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 10px;
+      flex-direction: column;
+      margin-bottom: 16px;
+    }
+
+    @media (min-width: 720px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .top-actions {
+        flex-direction: row;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header>
+      <h1>Configurações do Arraiá</h1>
+      <p>Altere Pix, WhatsApp, preço, lote ativo e limite de compra sem mexer no código.</p>
+    </header>
+
+    <div class="top-actions">
+      <button class="secondary" id="backButton">Voltar</button>
+      <button class="secondary" id="logoutButton">Sair do admin</button>
+    </div>
+
+    <section class="card">
+      <h2>Dados do evento e pagamento</h2>
+
+      <form id="configForm">
+        <div class="grid">
+          <div>
+            <label for="nomeEvento">Nome do evento</label>
+            <input id="nomeEvento" type="text" placeholder="Arraiá do CETEP" required />
+          </div>
+
+          <div>
+            <label for="escola">Escola</label>
+            <input id="escola" type="text" placeholder="CETEP-BRG" required />
+          </div>
+
+          <div>
+            <label for="pixKey">Chave Pix</label>
+            <input id="pixKey" type="text" placeholder="Chave Pix aleatória" required />
+          </div>
+
+          <div>
+            <label for="pixReceiverName">Nome do recebedor</label>
+            <input id="pixReceiverName" type="text" placeholder="Nome de quem recebe" required />
+          </div>
+
+          <div>
+            <label for="whatsappNumber">WhatsApp para comprovantes</label>
+            <input id="whatsappNumber" type="text" placeholder="5577999999999" required />
+          </div>
+
+          <div>
+            <label for="maxPorCompra">Máximo por compra</label>
+            <input id="maxPorCompra" type="number" min="1" placeholder="3" required />
+          </div>
+
+          <div>
+            <label for="loteAtualId">Lote ativo</label>
+            <select id="loteAtualId"></select>
+          </div>
+        </div>
+
+        <button class="primary" type="submit">Salvar configurações</button>
+      </form>
+
+      <div class="message" id="configMessage"></div>
+    </section>
+
+    <section class="card">
+      <h2>Criar novo lote</h2>
+
+      <form id="loteForm">
+        <div class="grid">
+          <div>
+            <label for="loteNome">Nome do lote</label>
+            <input id="loteNome" type="text" placeholder="2º lote" required />
+          </div>
+
+          <div>
+            <label for="lotePreco">Preço do ingresso</label>
+            <input id="lotePreco" type="number" min="1" step="0.01" placeholder="15" required />
+          </div>
+
+          <div>
+            <label for="loteQuantidade">Quantidade máxima do lote</label>
+            <input id="loteQuantidade" type="number" min="1" placeholder="100" required />
+          </div>
+        </div>
+
+        <button class="primary" type="submit">Criar lote</button>
+      </form>
+
+      <div class="message" id="loteMessage"></div>
+    </section>
+
+    <section class="card">
+      <h2>Lotes cadastrados</h2>
+      <div id="lotesList">
+        Carregando lotes...
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const API_URL = "https://sao-joao-ingressos.onrender.com";
+
+    const adminToken = localStorage.getItem("saoJoaoAdminToken");
+
+    if (!adminToken) {
+      window.location.href = "login-admin.html?redirect=admin-config.html";
+    }
+
+    const configForm = document.getElementById("configForm");
+    const loteForm = document.getElementById("loteForm");
+    const lotesList = document.getElementById("lotesList");
+    const configMessage = document.getElementById("configMessage");
+    const loteMessage = document.getElementById("loteMessage");
+
+    const nomeEvento = document.getElementById("nomeEvento");
+    const escola = document.getElementById("escola");
+    const pixKey = document.getElementById("pixKey");
+    const pixReceiverName = document.getElementById("pixReceiverName");
+    const whatsappNumber = document.getElementById("whatsappNumber");
+    const maxPorCompra = document.getElementById("maxPorCompra");
+    const loteAtualId = document.getElementById("loteAtualId");
+
+    const loteNome = document.getElementById("loteNome");
+    const lotePreco = document.getElementById("lotePreco");
+    const loteQuantidade = document.getElementById("loteQuantidade");
+
+    let lotesCache = [];
+
+    function formatCurrency(value) {
+      return Number(value).toLocaleString("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+      });
+    }
+
+    function showMessage(element, text) {
+      element.textContent = text;
+      element.classList.add("show");
+
+      setTimeout(() => {
+        element.classList.remove("show");
+      }, 3500);
+    }
+
+    async function fetchAdmin(url, options = {}) {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          "X-Admin-Token": adminToken,
+          ...(options.headers || {})
+        }
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Erro na requisição.");
+      }
+
+      return data;
+    }
+
+    async function loadConfig() {
+      const configResponse = await fetch(`${API_URL}/api/configuracoes/evento`);
+      const configData = await configResponse.json();
+
+      if (!configResponse.ok) {
+        throw new Error(configData.message || "Erro ao carregar configurações.");
+      }
+
+      const lotesData = await fetchAdmin(`${API_URL}/api/configuracoes/lotes`);
+      lotesCache = lotesData.lotes;
+
+      const config = configData.configuracao;
+
+      nomeEvento.value = config.nomeEvento || "Arraiá do CETEP";
+      escola.value = config.escola || "CETEP-BRG";
+      pixKey.value = config.pixKey || "";
+      pixReceiverName.value = config.pixReceiverName || "";
+      whatsappNumber.value = config.whatsappNumber || "";
+      maxPorCompra.value = config.maxPorCompra || 1;
+
+      loteAtualId.innerHTML = "";
+
+      lotesCache.forEach((lote) => {
+        const option = document.createElement("option");
+        option.value = lote.loteId;
+        option.textContent = `${lote.nome} — ${formatCurrency(lote.preco)}`;
+        loteAtualId.appendChild(option);
+      });
+
+      loteAtualId.value = config.loteAtualId || lotesCache[0]?.loteId || "";
+
+      renderLotes();
+    }
+
+    function renderLotes() {
+      if (!lotesCache.length) {
+        lotesList.innerHTML = "Nenhum lote cadastrado.";
+        return;
+      }
+
+      lotesList.innerHTML = "";
+
+      lotesCache.forEach((lote) => {
+        const disponiveis = Number(lote.quantidadeMaxima || 0) - Number(lote.quantidadeReservada || 0);
+
+        const card = document.createElement("div");
+        card.className = "lote-card";
+
+        card.innerHTML = `
+          ${lote.ativo ? `<span class="badge">Lote ativo</span>` : ""}
+          <strong>${lote.nome}</strong>
+          <p>
+            Preço: ${formatCurrency(lote.preco)}<br>
+            Máximo do lote: ${lote.quantidadeMaxima}<br>
+            Reservados: ${lote.quantidadeReservada || 0}<br>
+            Pagos: ${lote.quantidadePaga || 0}<br>
+            Disponíveis: ${disponiveis}
+          </p>
+
+          <button class="success" type="button" onclick="activateLot('${lote.loteId}')">
+            Ativar este lote
+          </button>
+        `;
+
+        lotesList.appendChild(card);
+      });
+    }
+
+    async function activateLot(loteId) {
+      try {
+        await fetchAdmin(`${API_URL}/api/configuracoes/lotes/${loteId}/ativar`, {
+          method: "POST"
+        });
+
+        showMessage(configMessage, "Lote ativado com sucesso.");
+        await loadConfig();
+      } catch (error) {
+        showMessage(configMessage, error.message);
+      }
+    }
+
+    configForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      try {
+        await fetchAdmin(`${API_URL}/api/configuracoes/evento`, {
+          method: "PUT",
+          body: JSON.stringify({
+            nomeEvento: nomeEvento.value.trim(),
+            escola: escola.value.trim(),
+            pixKey: pixKey.value.trim(),
+            pixReceiverName: pixReceiverName.value.trim(),
+            whatsappNumber: whatsappNumber.value.trim(),
+            maxPorCompra: Number(maxPorCompra.value),
+            loteAtualId: loteAtualId.value
+          })
+        });
+
+        showMessage(configMessage, "Configurações salvas com sucesso.");
+        await loadConfig();
+      } catch (error) {
+        showMessage(configMessage, error.message);
+      }
+    });
+
+    loteForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      try {
+        await fetchAdmin(`${API_URL}/api/configuracoes/lotes`, {
+          method: "POST",
+          body: JSON.stringify({
+            nome: loteNome.value.trim(),
+            preco: Number(lotePreco.value),
+            quantidadeMaxima: Number(loteQuantidade.value)
+          })
+        });
+
+        loteNome.value = "";
+        lotePreco.value = "";
+        loteQuantidade.value = "";
+
+        showMessage(loteMessage, "Lote criado com sucesso.");
+        await loadConfig();
+      } catch (error) {
+        showMessage(loteMessage, error.message);
+      }
+    });
+
+    document.getElementById("backButton").addEventListener("click", () => {
+      window.location.href = "admin-pagamentos.html";
+    });
+
+    document.getElementById("logoutButton").addEventListener("click", () => {
+      localStorage.removeItem("saoJoaoAdminToken");
+      window.location.href = "login-admin.html";
+    });
+
+    loadConfig().catch((error) => {
+      lotesList.innerHTML = error.message;
+    });
+  </script>
+</body>
+</html>

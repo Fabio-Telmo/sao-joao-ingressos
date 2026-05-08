@@ -4,13 +4,44 @@ const requireAdmin = require("../middlewares/adminAuth");
 
 const router = express.Router();
 
-const TICKET_PRICE = 10;
-const MAX_TICKETS = 10;
-
 function generateTicketCode() {
   const year = new Date().getFullYear();
   const random = Math.floor(100000 + Math.random() * 900000);
   return `SJ-${year}-${random}`;
+}
+
+async function getEventConfigAndActiveLot() {
+  const configDoc = await db.collection("configuracoes").doc("evento").get();
+
+  if (!configDoc.exists) {
+    throw new Error("Configuração do evento não encontrada. Configure o evento na área administrativa.");
+  }
+
+  const configuracao = configDoc.data();
+
+  if (!configuracao.loteAtualId) {
+    throw new Error("Nenhum lote ativo foi definido.");
+  }
+
+  const loteRef = db.collection("lotes").doc(configuracao.loteAtualId);
+  const loteDoc = await loteRef.get();
+
+  if (!loteDoc.exists) {
+    throw new Error("Lote ativo não encontrado.");
+  }
+
+  const lote = loteDoc.data();
+
+  if (!lote.ativo) {
+    throw new Error("O lote selecionado não está ativo.");
+  }
+
+  return {
+    configuracao,
+    lote,
+    loteRef,
+    loteId: loteDoc.id
+  };
 }
 
 router.post("/", async (req, res) => {
@@ -32,13 +63,6 @@ router.post("/", async (req, res) => {
       });
     }
 
-    if (quantidade > MAX_TICKETS) {
-      return res.status(400).json({
-        status: "erro",
-        message: `O limite por compra é de ${MAX_TICKETS} ingressos.`
-      });
-    }
-
     const compradorRef = db.collection("compradores").doc(compradorId);
     const compradorDoc = await compradorRef.get();
 
@@ -49,21 +73,54 @@ router.post("/", async (req, res) => {
       });
     }
 
+    const { configuracao, lote, loteRef, loteId } = await getEventConfigAndActiveLot();
+
+    const maxPorCompra = Number(configuracao.maxPorCompra || 1);
+
+    if (quantidade > maxPorCompra) {
+      return res.status(400).json({
+        status: "erro",
+        message: `O limite por compra é de ${maxPorCompra} ingresso(s).`
+      });
+    }
+
+    const quantidadeMaxima = Number(lote.quantidadeMaxima || 0);
+    const quantidadeReservada = Number(lote.quantidadeReservada || 0);
+    const disponiveis = quantidadeMaxima - quantidadeReservada;
+
+    if (disponiveis <= 0) {
+      return res.status(400).json({
+        status: "erro",
+        message: "Este lote está esgotado."
+      });
+    }
+
+    if (quantidade > disponiveis) {
+      return res.status(400).json({
+        status: "erro",
+        message: `Restam apenas ${disponiveis} ingresso(s) neste lote.`
+      });
+    }
+
     const pedidoRef = db.collection("pedidos").doc();
     const ingressoRef = db.collection("ingressos").doc();
 
     const ticketCode = generateTicketCode();
+    const valorUnitario = Number(lote.preco);
+    const valorTotal = quantidade * valorUnitario;
 
     const pedido = {
       compradorId,
       quantidade,
-      valorUnitario: TICKET_PRICE,
-      valorTotal: quantidade * TICKET_PRICE,
+      valorUnitario,
+      valorTotal,
       status: "ativo",
       statusPagamento: "nao_pago",
       metodoPagamento: "pix_manual",
       ingressoId: ingressoRef.id,
       codigoValidacao: ticketCode,
+      loteId,
+      loteNome: lote.nome,
       criadoEm: new Date(),
       atualizadoEm: new Date()
     };
@@ -73,10 +130,12 @@ router.post("/", async (req, res) => {
       compradorId,
       codigoValidacao: ticketCode,
       quantidade,
-      valorTotal: quantidade * TICKET_PRICE,
+      valorTotal,
       statusPagamento: "nao_pago",
       usado: false,
       usadoEm: null,
+      loteId,
+      loteNome: lote.nome,
       criadoEm: new Date(),
       atualizadoEm: new Date()
     };
@@ -85,6 +144,10 @@ router.post("/", async (req, res) => {
 
     batch.set(pedidoRef, pedido);
     batch.set(ingressoRef, ingresso);
+    batch.update(loteRef, {
+      quantidadeReservada: quantidadeReservada + quantidade,
+      atualizadoEm: new Date()
+    });
 
     await batch.commit();
 
@@ -102,8 +165,7 @@ router.post("/", async (req, res) => {
 
     res.status(500).json({
       status: "erro",
-      message: "Erro ao criar pedido.",
-      error: error.message
+      message: error.message || "Erro ao criar pedido."
     });
   }
 });
@@ -205,6 +267,9 @@ router.get("/:pedidoId", async (req, res) => {
       }
     }
 
+    const configDoc = await db.collection("configuracoes").doc("evento").get();
+    const configuracao = configDoc.exists ? configDoc.data() : {};
+
     res.json({
       status: "sucesso",
       pedidoId,
@@ -212,11 +277,11 @@ router.get("/:pedidoId", async (req, res) => {
       comprador: compradorDoc.exists ? compradorDoc.data() : null,
       ingresso,
       pix: {
-        key: process.env.PIX_KEY,
-        receiverName: process.env.PIX_RECEIVER_NAME
+        key: configuracao.pixKey || process.env.PIX_KEY,
+        receiverName: configuracao.pixReceiverName || process.env.PIX_RECEIVER_NAME
       },
       whatsapp: {
-        number: process.env.WHATSAPP_NUMBER
+        number: configuracao.whatsappNumber || process.env.WHATSAPP_NUMBER
       }
     });
   } catch (error) {
@@ -274,6 +339,21 @@ router.post("/:pedidoId/confirmar-pagamento", requireAdmin, async (req, res) => 
       pagoEm: new Date(),
       atualizadoEm: new Date()
     });
+
+    if (pedido.loteId) {
+      const loteRef = db.collection("lotes").doc(pedido.loteId);
+      const loteDoc = await loteRef.get();
+
+      if (loteDoc.exists) {
+        const lote = loteDoc.data();
+        const quantidadePagaAtual = Number(lote.quantidadePaga || 0);
+
+        batch.update(loteRef, {
+          quantidadePaga: quantidadePagaAtual + Number(pedido.quantidade || 0),
+          atualizadoEm: new Date()
+        });
+      }
+    }
 
     await batch.commit();
 

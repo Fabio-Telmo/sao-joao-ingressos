@@ -2,7 +2,7 @@ const adminRoutes = require("./routes/admin");
 const express = require("express");
 const cors = require("cors");
 const ingressosRoutes = require("./routes/ingressos");
-
+const configuracoesRoutes = require("./routes/configuracoes");
 require("dotenv").config();
 
 const db = require("./services/firebase");
@@ -54,6 +54,7 @@ app.use("/api/compradores", compradoresRoutes);
 app.use("/api/pedidos", pedidosRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/ingressos", ingressosRoutes);
+app.use("/api/configuracoes", configuracoesRoutes);
 
 app.listen(PORT, () => {
   console.log(`Servidor rodando na porta ${PORT}`);
