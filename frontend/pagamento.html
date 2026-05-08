@@ -30,7 +30,7 @@
 
       <header class="header">
         <h1>Pagamento <span>via Pix</span></h1>
-        <p>Confira os dados da compra e pague pelo QR Code para liberar o ingresso.</p>
+        <p>Confira os dados da compra, faça o Pix e envie o comprovante pelo WhatsApp.</p>
       </header>
 
       <div class="summary">
@@ -56,47 +56,43 @@
       </div>
 
       <div class="payment-box" id="paymentBox">
-        <div class="qr-wrap">
-          <div class="qr-placeholder" id="qrPlaceholder" aria-label="QR Code simulado"></div>
-          <img class="qr-image" id="qrImage" alt="QR Code Pix" />
-        </div>
+        <h2 class="payment-title">Pagamento por chave Pix</h2>
 
-        <h2 class="payment-title">Escaneie o QR Code</h2>
         <p class="payment-text">
-          Use o aplicativo do banco para pagar. Depois da confirmação, o ingresso será liberado.
+          Copie a chave Pix abaixo, faça o pagamento no aplicativo do banco e envie o comprovante pelo WhatsApp.
         </p>
 
         <div class="pix-card">
-  <span>Chave Pix</span>
+          <span>Chave Pix</span>
 
-  <div class="pix-key-box">
-    <strong id="pixKeyText">Carregando chave...</strong>
-    <button type="button" id="copyPixKeyButton">Copiar</button>
-  </div>
+          <div class="pix-key-box">
+            <strong id="pixKeyText">Carregando chave...</strong>
+            <button type="button" id="copyPixKeyButton">Copiar</button>
+          </div>
 
-  <p id="pixReceiverText">Recebedor: carregando...</p>
-  <p id="pixValueText">Valor: carregando...</p>
-</div>
+          <p id="pixReceiverText">Recebedor: carregando...</p>
+          <p id="pixValueText">Valor: carregando...</p>
+        </div>
 
-<div class="pix-code-area">
-  <label for="pixCode">Dados do pagamento</label>
-  <textarea class="pix-code" id="pixCode" readonly></textarea>
-</div>
+        <div class="pix-code-area">
+          <label for="pixCode">Dados do pagamento</label>
+          <textarea class="pix-code" id="pixCode" readonly></textarea>
+        </div>
       </div>
 
       <div class="status-box" id="statusBox">
-        Aguardando confirmação do pagamento.
+        Carregando dados do pagamento...
       </div>
 
       <div class="actions">
-        <button class="button primary" type="button" id="copyPixButton">Copiar código Pix</button>
-        <button class="button primary" type="button" id="simulatePaymentButton">Simular pagamento aprovado</button>
+        <button class="button primary" type="button" id="copyPixButton">Copiar dados do pagamento</button>
+        <button class="button primary" type="button" id="simulatePaymentButton">Enviar comprovante pelo WhatsApp</button>
         <button class="button success" type="button" id="ticketButton">Ver ingresso</button>
         <button class="button secondary" type="button" id="backButton">Voltar para compra</button>
       </div>
 
       <p class="small-note">
-        Nesta versão, o QR Code é apenas visual. Depois, o backend vai buscar o QR Code real no Mercado Pago e substituir este conteúdo.
+        O ingresso pode ser visualizado antes da confirmação, mas a entrada só deve ser liberada se o status estiver como pago.
       </p>
     </section>
   </main>
