@@ -29,6 +29,33 @@ function getDateValue(value) {
   return new Date(value).getTime() || 0;
 }
 
+async function queryBuyersByField(field, value) {
+  if (!value) return [];
+
+  const snapshot = await db
+    .collection("compradores")
+    .where(field, "==", value)
+    .limit(10)
+    .get();
+
+  return snapshot.docs.map((doc) => ({
+    compradorId: doc.id,
+    ...doc.data()
+  }));
+}
+
+function removeDuplicates(list) {
+  const map = new Map();
+
+  list.forEach((item) => {
+    if (item.compradorId) {
+      map.set(item.compradorId, item);
+    }
+  });
+
+  return Array.from(map.values());
+}
+
 router.post("/ingresso", async (req, res) => {
   try {
     const { email, phone, birthDate } = req.body;
@@ -44,34 +71,41 @@ router.post("/ingresso", async (req, res) => {
       });
     }
 
-    const compradoresSnapshot = await db.collection("compradores").get();
+    const possibleBuyers = removeDuplicates([
+      ...(await queryBuyersByField("emailNormalized", emailNormalizado)),
+      ...(await queryBuyersByField("email", email.trim())),
+      ...(await queryBuyersByField("phoneDigits", telefoneNormalizado)),
+      ...(await queryBuyersByField("phone", phone.trim())),
+      ...(await queryBuyersByField("birthDate", nascimentoNormalizado))
+    ]);
 
-    let compradorEncontrado = null;
-    let compradorId = null;
+    const compradorEncontrado = possibleBuyers.find((comprador) => {
+      const mesmoEmail =
+        normalizeEmail(comprador.emailNormalized || comprador.email) === emailNormalizado ||
+        normalizeEmail(comprador.email) === emailNormalizado;
 
-    compradoresSnapshot.docs.forEach((doc) => {
-      const comprador = doc.data();
+      const mesmoTelefone =
+        normalizePhone(comprador.phoneDigits || comprador.phone) === telefoneNormalizado ||
+        normalizePhone(comprador.phone) === telefoneNormalizado;
 
-      const mesmoEmail = normalizeEmail(comprador.email) === emailNormalizado;
-      const mesmoTelefone = normalizePhone(comprador.phone) === telefoneNormalizado;
       const mesmaData = normalizeBirthDate(comprador.birthDate) === nascimentoNormalizado;
 
-      if (mesmoEmail && mesmoTelefone && mesmaData) {
-        compradorEncontrado = comprador;
-        compradorId = doc.id;
-      }
+      return mesmoEmail && mesmoTelefone && mesmaData;
     });
 
-    if (!compradorEncontrado || !compradorId) {
+    if (!compradorEncontrado) {
       return res.status(404).json({
         status: "erro",
         message: "Não foi possível recuperar o ingresso com os dados informados."
       });
     }
 
+    const compradorId = compradorEncontrado.compradorId;
+
     const pedidosSnapshot = await db
       .collection("pedidos")
       .where("compradorId", "==", compradorId)
+      .limit(20)
       .get();
 
     if (pedidosSnapshot.empty) {
@@ -113,11 +147,18 @@ router.post("/ingresso", async (req, res) => {
       });
     }
 
+    const compradorLimpo = {
+      fullName: compradorEncontrado.fullName,
+      birthDate: compradorEncontrado.birthDate,
+      phone: compradorEncontrado.phone,
+      email: compradorEncontrado.email
+    };
+
     res.json({
       status: "sucesso",
       message: "Ingresso recuperado com sucesso.",
       compradorId,
-      comprador: compradorEncontrado,
+      comprador: compradorLimpo,
       pedido,
       ingresso
     });
